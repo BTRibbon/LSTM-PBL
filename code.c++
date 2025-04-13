@@ -3,76 +3,77 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 
 struct Sample {
-    vector<double> input;
+    vector<double> input;  // struct ví dụ 
     double output;
 };
 
 double activateSigmoid(double x) {
-    return 1.0 / (1.0 + exp(-x));
+    return 1.0 / (1.0 + exp(-x));     // hàm sigmoid 
 }
 
 vector<double> activateSigmoid(const vector<double>& vec) {
     vector<double> res(vec.size());
     for (size_t i = 0; i < vec.size(); i++)
-        res[i] = activateSigmoid(vec[i]);
+        res[i] = activateSigmoid(vec[i]);           // dùng hàm sigmoid cho từng phần tử trong vectơ
     return res;
 }
 
 double activateTanh(double x) {
-    return tanh(x);
+    return tanh(x);                  // hàm tanh
 }
 
 vector<double> activateTanh(const vector<double>& vec) {
     vector<double> res(vec.size());
-    for (size_t i = 0; i < vec.size(); i++)
+    for (size_t i = 0; i < vec.size(); i++)         // dùng hàm tanh cho từng phần tử trong vectơ 
         res[i] = activateTanh(vec[i]);
     return res;
 }
 
 double dActivateSigmoid(double y) {
-    return y * (1.0 - y);
+    return y * (1.0 - y);                   // đạo hàm của sigmoid
 }
 
 vector<double> dActivateSigmoid(const vector<double>& vec) {
     vector<double> res(vec.size());
     for (size_t i = 0; i < vec.size(); i++)
-        res[i] = vec[i] * (1.0 - vec[i]);
+        res[i] = vec[i] * (1.0 - vec[i]);           // đạo hàm sigmoid của từng phần tử trong vector
     return res;
 }
 
 double dActivateTanh(double y) {
-    return 1.0 - y * y;
+    return 1.0 - y * y;                 // đạo hàm của hàm tanh
 }
 
 vector<double> dActivateTanh(const vector<double>& vec) {
     vector<double> res(vec.size());
     for (size_t i = 0; i < vec.size(); i++)
-        res[i] = 1.0 - vec[i] * vec[i];
+        res[i] = 1.0 - vec[i] * vec[i];         // đạo hàm của hàm tanh cho từng phần tử trong vector
     return res;
 }
 
 vector<double> addVectors(const vector<double>& a, const vector<double>& b) {
     vector<double> res(a.size());
     for (size_t i = 0; i < a.size(); i++)
-        res[i] = a[i] + b[i];
+        res[i] = a[i] + b[i];               // hàm cộng hai vector
     return res;
 }
 
 vector<double> multiplyVectors(const vector<double>& a, const vector<double>& b) {
     vector<double> res(a.size());
-    for (size_t i = 0; i < a.size(); i++)
+    for (size_t i = 0; i < a.size(); i++)       // hàm nhân hai vector
         res[i] = a[i] * b[i];
     return res;
 }
 
 vector<double> scaleVector(const vector<double>& vec, double factor) {
     vector<double> res(vec.size());
-    for (size_t i = 0; i < vec.size(); i++)
-        res[i] = vec[i] * factor;
+    for (size_t i = 0; i < vec.size(); i++)         
+        res[i] = vec[i] * factor;               // hàm nhân vector với một số
     return res;
 }
 
@@ -80,45 +81,58 @@ vector<double> matrixVectorProduct(const vector<vector<double>>& mat, const vect
     vector<double> res(mat.size(), 0.0);
     for (size_t i = 0; i < mat.size(); i++)
         for (size_t j = 0; j < vec.size(); j++)
-            res[i] += mat[i][j] * vec[j];
+            res[i] += mat[i][j] * vec[j];           // hàm nhân một ma trận với một vector( hay là ma trận 1*n)
     return res;
 }
 
 vector<double> concatVectors(const vector<double>& v1, const vector<double>& v2) {
-    vector<double> res = v1;
-    res.insert(res.end(), v2.begin(), v2.end());
-    return res;
+    vector<double> res = v1;                             // hàm chèn vector v2 vào cuối vector v1
+
+    res.insert(res.end(), v2.begin(), v2.end());        // res.end() ( hay v1.end() ) là vị trí bắt đầu chèn
+                                                        // chèn các phần tử từ v2.begin()->v2.end()
+    return res;                                     
 }
 
 double clipValue(double val, double minVal, double maxVal) {
-    return max(minVal, min(val, maxVal));
+
+    return max(minVal, min(val, maxVal));       // hàm này để giúp ta giới hạn hẹp dần hoặc bằng
+
+    // vd : clipValue(10,0,100) ->max(0,min(10,100)) -> 10. Vậy giới han từ 0-100 giờ thành 10-100
 }
 
 vector<double> clipVector(const vector<double>& vec, double minVal, double maxVal) {
     vector<double> res(vec.size());
     for (size_t i = 0; i < vec.size(); i++)
-        res[i] = clipValue(vec[i], minVal, maxVal);
+        res[i] = clipValue(vec[i], minVal, maxVal);     // làm hẹp giới hạn trong vector
     return res;
 }
 
 class MyLSTM {
     int inSize;
     int hidSize;
-    vector<vector<double>> Wf, Wi, Wc, Wo;
-    vector<double> bf, bi, bc, bo;
+    vector<vector<double>> Wf, Wi, Wc, Wo;  // các trọng số (weight)
+    vector<double> bf, bi, bc, bo;          // các độ lệch (bias)
     
     // Lưu trữ các kết quả trung gian
     vector<double> lastInput, lastHidden, lastCell;
     vector<double> gateForget, gateInput, candidate, gateOutput;
     vector<double> cellState, hiddenState;
     
-    mt19937 rng;
-    normal_distribution<double> dist;
+    mt19937 rng;        // đay là engine sinh số ngẫu nhiên
+    normal_distribution<double> dist;       // còn cái này là để sinh ra các giá trị nằm trong khoảng nào đó
     
 public:
-    MyLSTM(int inputSize, int hiddenSize)
+    MyLSTM(int inputSize, int hiddenSize) 
         : inSize(inputSize), hidSize(hiddenSize), rng(random_device{}()), dist(0.0, 0.1) {
+
+        // cái "inSize(inputSize), hidSize(hiddenSize)"  đó thực ra là :
+        // inSize=inputSize; hidSize= hiddenSize; lý do nên dùng cái trên là gọn với hiệu năng cao hơn
+        // cái "rng(random_device{}()), dist(0.0, 0.1)"" cũng y vậy
+        
         Wf = vector<vector<double>>(hidSize, vector<double>(inSize + hidSize));
+        // vector<double>(inSize + hidSize) : câu lệnh này có nghĩa là tạo một vector có
+        // inSize + hidSize phần tử và tất cả đều có giá trị bằng 0
+
         Wi = vector<vector<double>>(hidSize, vector<double>(inSize + hidSize));
         Wc = vector<vector<double>>(hidSize, vector<double>(inSize + hidSize));
         Wo = vector<vector<double>>(hidSize, vector<double>(inSize + hidSize));
@@ -328,7 +342,7 @@ int main() {
     int numEpochs = 1000;
     
     vector<Sample> trainData;
-    freopen("data.txt", "r", stdin);
+    freopen("D:\\PBL1\\fibodata.txt", "r", stdin);
     for (int i = 0; i < 1460; i++) {
         Sample s;
         vector<double> feat;
