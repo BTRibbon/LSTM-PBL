@@ -1,6 +1,5 @@
-#include<stdio.h>
-#include<math.h>
-#include<string.h>
-int main(){
+#include <stdio.h>
 
+int main(){
+    printf("có dấu");
 }

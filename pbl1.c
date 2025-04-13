@@ -48,7 +48,11 @@ typedef struct {
 LSTM test(LSTM tao){
 
     tao.Wf=1;tao.Wi=1;tao.Wc=1;tao.Wo=1;// tạo trọng số ban đầu cho LSTM
+
     tao.bf=0;tao.bi=0;tao.bc=0;tao.bo=0;// tạo bias ban đầu cho LSTM
+
+    return tao;
+    
 }
 
 int main(){
