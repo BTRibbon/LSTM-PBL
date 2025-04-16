@@ -134,6 +134,7 @@ public:
         // inSize + hidSize phần tử và tất cả đều có giá trị bằng 0
         //inSize ở đây chính là số lượng feature của đối tượng. Ví dụ: một ngày có lượng nhiệt độ, độ ẩm
         //  => có 2 feature => inSize = 2
+        // trong trường hợp này ta sẽ thấy Wf là ma trận [hidSize*(inSize+hidenSize)]
         Wi = vector<vector<double>>(hidSize, vector<double>(inSize + hidSize));
         Wc = vector<vector<double>>(hidSize, vector<double>(inSize + hidSize));
         Wo = vector<vector<double>>(hidSize, vector<double>(inSize + hidSize));
@@ -155,14 +156,16 @@ public:
     }
     
     // Hàm forward cho một bước thời gian
+    // Hay còn gọi là hàm để tính kết quả với những trọng số ngẫu nhiên đã tạo ban đầu
     pair<vector<double>, vector<double>> forward(const vector<double>& input, 
                                                    const vector<double>& prevHidden, 
                                                    const vector<double>& prevCell) {
         lastInput = input;
         lastHidden = prevHidden;
         lastCell = prevCell;
-        vector<double> combined = concatVectors(input, prevHidden);
-        
+        vector<double> combined = concatVectors(input, prevHidden);// nối cái X_t với h_t-1 theo công thức
+        // và ta sẽ có được [x_t,h_t-1] là ma trận [(inSize+hidenSize)*1]
+
         gateForget = activateSigmoid(addVectors(matrixVectorProduct(Wf, combined), bf));
         gateInput  = activateSigmoid(addVectors(matrixVectorProduct(Wi, combined), bi));
         candidate  = activateTanh(addVectors(matrixVectorProduct(Wc, combined), bc));
@@ -172,8 +175,11 @@ public:
         hiddenState = multiplyVectors(activateTanh(cellState), gateOutput);
         
         return {hiddenState, cellState};
+        // addVectors: hàm cộng hai vector
+        // matrixVectorProduct: hàm nhân một ma trận với một vector( hay là ma trận n*1)
+        // multiplyVectors: hàm nhân hai vector
     }
-    
+
     // Hàm backward cho một bước thời gian
     // dHiddenNext: gradient của hidden state từ bước sau
     // dCellNext: gradient của cell state từ bước sau
@@ -186,6 +192,10 @@ public:
                                                                      double lr, 
                                                                      double clipVal = 5.0) {
         vector<double> dGateOutput = multiplyVectors(dHiddenNext, activateTanh(cellState));
+        // tính (đạo hàm của L theo h_t) * (đạo hàm của h_t theo o_t)
+        // hay là  (đạo hàm của L theo h_t) * (tanh(C_t))
+        // công thức giống với word 
+
         vector<double> dCellTotal = addVectors(dCellNext, 
                                     multiplyVectors(dHiddenNext, 
                                         multiplyVectors(gateOutput, dActivateTanh(activateTanh(cellState)))));
@@ -196,6 +206,8 @@ public:
         
         // Áp dụng đạo hàm của các hàm kích hoạt
         dGateOutput = multiplyVectors(dGateOutput, dActivateSigmoid(gateOutput));
+        // kết quả của dGateOutput trên kia nhân với (đạo hàm của cổng ouput theo Wo)
+
         dGateInput  = multiplyVectors(dGateInput, dActivateSigmoid(gateInput));
         dCandidate  = multiplyVectors(dCandidate, dActivateTanh(candidate));
         dGateForget = multiplyVectors(dGateForget, dActivateSigmoid(gateForget));
@@ -206,7 +218,7 @@ public:
         dCandidate  = clipVector(dCandidate, -clipVal, clipVal);
         dGateForget = clipVector(dGateForget, -clipVal, clipVal);
         
-        vector<double> combined = concatVectors(lastInput, lastHidden);
+        vector<double> combined = concatVectors(lastInput, lastHidden);// kết hợp [x_t,h_t-1]
         
         // Cập nhật trọng số cho mỗi cổng
         for (int i = 0; i < hidSize; i++) {
