@@ -254,37 +254,57 @@ public:
     }
 };
 
+//Lớp LSTM Model
 class LSTMModel {
+    //Thông số kiến trúc mạng
     int inputDim;
     int hiddenDim;
     int outputDim;
     MyLSTM lstmCell;
+
+    //Tham số lớp đầu ra
     vector<vector<double>> Wy;
     vector<double> by;
+
+    //Tham số huấn luyện
     double learningRate;
     int epochs;
     
 public:
+    //Hàm khởi tạo
     LSTMModel(int inDim, int hidDim, int outDim, double lr = 0.01, int ep = 50)
         : inputDim(inDim), hiddenDim(hidDim), outputDim(outDim), lstmCell(inDim, hidDim),
           learningRate(lr), epochs(ep) {
+        // Khởi tạo ngẫu nhiên trọng số Wy và bias by
         random_device rd;
         mt19937 gen(rd());
-        normal_distribution<double> d(0.0, 0.1);
+        normal_distribution<double> d(0.0, 0.1);// Phân phối chuẩn
+            
         Wy = vector<vector<double>>(outputDim, vector<double>(hiddenDim));
         by = vector<double>(outputDim, 0.0);
+
+        // Gán giá trị ngẫu nhiên cho Wy
         for (int i = 0; i < outputDim; i++) {
             for (int j = 0; j < hiddenDim; j++)
                 Wy[i][j] = d(gen);
         }
     }
-    
+
+    //Hàm huấn luyện mô hình
     double trainModel(const vector<Sample>& dataset) {
         double totalLoss = 0.0;
+        
+        // Lặp qua số lần huấn luyện
         for (int ep = 0; ep < epochs; ep++) {
             double epLoss = 0.0;
+            
+            // Duyệt qua từng mẫu trong tập dữ liệu
             for (const auto& s : dataset) {
+                
+                // Khởi tạo hidden state và cell state ban đầu
                 vector<double> h(hiddenDim, 0.0), c(hiddenDim, 0.0);
+                
+                // Lan truyền thuận qua LSTM cell
                 auto [hOut, cOut] = lstmCell.forward(s.input, h, c);
                 
                 // Lớp output
@@ -304,8 +324,10 @@ public:
                 loss /= outputDim;
                 epLoss += loss;
                 
-                // Backprop lớp output
+                // Lan truyền ngược lớp output
                 vector<double> dHidden(hiddenDim, 0.0);
+
+                // Cập nhật trọng số Wy và bias by
                 for (int i = 0; i < outputDim; i++) {
                     for (int j = 0; j < hiddenDim; j++) {
                         Wy[i][j] -= learningRate * dPred[i] * hOut[j];
@@ -313,28 +335,39 @@ public:
                     }
                     by[i] -= learningRate * dPred[i];
                 }
-                
+
+                //Lan truyền ngược qua LSTM cell
                 vector<double> dCell(hiddenDim, 0.0);
                 lstmCell.backward(dHidden, dCell, learningRate);
             }
+            
+            // Tính loss trung bình epoch
             epLoss /= dataset.size();
             totalLoss = epLoss;
+            
+            // In thông tin sau mỗi 10 epoch
             if ((ep + 1) % 10 == 0 || ep == 0)
                 cout << "Epoch " << (ep + 1) << "/" << epochs << " - Loss: " << epLoss << endl;
         }
         return totalLoss;
     }
-    
+
+    // Hàm dự đoán đầu ra từ dữ liệu mới
     double predictOutput(const vector<double>& inputData) {
         vector<double> h(hiddenDim, 0.0), c(hiddenDim, 0.0);
+
+        // Lan truyền thuận qua LSTM
         auto [hOut, cOut] = lstmCell.forward(inputData, h, c);
+
+        // Tính toán đầu ra
         vector<double> out = matrixVectorProduct(Wy, hOut);
         for (int i = 0; i < outputDim; i++)
             out[i] += by[i];
-        return out[0];
+        return out[0]; // Giả sử outputDim = 1
     }
 };
 
+// Hàm chuyển đổi giá trị đầu ra số thành nhãn dạng chuỗi
 string decodeOutput(double val) {
     int category = static_cast<int>(round(val));
     switch (category) {
@@ -348,40 +381,49 @@ string decodeOutput(double val) {
 }
 
 int main() {
+    // Tham số mô hình
     int inDim = 1;
     int hidDim = 32;
     int outDim = 1;
     double lr = 0.01;
     int numEpochs = 1000;
-    
+
+    // Đọc dữ liệu từ file
     vector<Sample> trainData;
     freopen("D:\\PBL1\\fibodata.txt", "r", stdin);
     for (int i = 0; i < 1460; i++) {
         Sample s;
         vector<double> feat;
+
+        // Đọc 5 giá trị đặc trưng
         for (int j = 0; j < 5; j++) {
             double temp;
             cin >> temp;
             feat.push_back(temp);
         }
         s.input = feat;
-        cin >> s.output;
+        cin >> s.output;// Đọc nhãn
         trainData.push_back(s);
     }
-    
+
+    // Khởi tạo và huấn luyện mô hình
     LSTMModel model(inDim, hidDim, outDim, lr, numEpochs);
     double finalLoss = model.trainModel(trainData);
     cout << "Training completed. Final Loss: " << finalLoss << endl;
-    
+
+    // Dự đoán
     cout << "Testing prediction:" << endl;
     vector<double> testInput;
+    // Đọc dữ liệu test (5 đặc trưng)
     for (int i = 0; i < 5; i++) {
         double val;
         cin >> val;
         testInput.push_back(val);
     }
     double actual;
-    cin >> actual;
+    cin >> actual;// Đọc giá trị thực tế
+
+    // Gọi hàm dự đoán và in kết quả
     double pred = model.predictOutput(testInput);
     cout << "Dự đoán cho ngày 31/12/2015: Actual: " << decodeOutput(actual)
          << ", Predicted: " << decodeOutput(pred) << endl;
