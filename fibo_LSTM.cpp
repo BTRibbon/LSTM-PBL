@@ -384,18 +384,7 @@ public:
     }
 };
 
-// Hàm chuyển đổi giá trị đầu ra số thành nhãn dạng chuỗi
-string decodeOutput(double val) {
-    int category = static_cast<int>(round(val));
-    switch (category) {
-        case 1: return "Mưa";
-        case 2: return "Nắng";
-        case 3: return "Tuyết";
-        case 4: return "Phùn";
-        case 5: return "Sương mù";
-        default: return "Không xác định";
-    }
-}
+
 
 int main() {
     // Tham số mô hình
