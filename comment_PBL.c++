@@ -186,7 +186,7 @@ public:
     // lr: learning rate
 
     //this is insane tbh
-    
+    // backward: back propagation
     tuple<vector<double>, vector<double>, vector<double>> backward(const vector<double>& dHiddenNext, 
                                                                      const vector<double>& dCellNext, 
                                                                      double lr, 
@@ -199,11 +199,17 @@ public:
         vector<double> dCellTotal = addVectors(dCellNext, 
                                     multiplyVectors(dHiddenNext, 
                                         multiplyVectors(gateOutput, dActivateTanh(activateTanh(cellState)))));
-        
+        // từ lúc này CellTotal sẽ là C_t
+        // Tính tổng đạo hàm theo C_t:
+        // ∂L/∂C_t = dCellNext + dHiddenNext * o_t * (1 - tanh(C_t)^2)C_t
+
         vector<double> dGateInput  = multiplyVectors(dCellTotal, candidate);
+        // Tính ∂L/∂i_t = ∂L/∂C_t * C̃_t
         vector<double> dCandidate  = multiplyVectors(dCellTotal, gateInput);
+        // Tính ∂L/∂C̃_t = ∂L/∂C_t * i_t
         vector<double> dGateForget = multiplyVectors(dCellTotal, lastCell);
-        
+        // Tính ∂L/∂f_t = ∂L/∂C_t * C_{t-1}
+
         // Áp dụng đạo hàm của các hàm kích hoạt
         dGateOutput = multiplyVectors(dGateOutput, dActivateSigmoid(gateOutput));
         // kết quả của dGateOutput trên kia nhân với (đạo hàm của cổng ouput theo Wo)
@@ -221,6 +227,8 @@ public:
         vector<double> combined = concatVectors(lastInput, lastHidden);// kết hợp [x_t,h_t-1]
         
         // Cập nhật trọng số cho mỗi cổng
+        // theo công thức W= W- ∂L/∂W * [x_t,h_{t-1}]
+        // và code dưới này là để thực hiện phép tính đó
         for (int i = 0; i < hidSize; i++) {
             for (int j = 0; j < inSize + hidSize; j++) {
                 Wf[i][j] -= lr * dGateForget[i] * combined[j];
@@ -236,6 +244,8 @@ public:
         
         // Tính gradient cho hidden state và cell state của bước trước
         vector<double> dCombined(inSize + hidSize, 0.0);
+        // tạo một vector dCombined với (inSize + hidSize) = 0.0
+        
         for (int i = 0; i < hidSize; i++) {
             for (int j = 0; j < inSize + hidSize; j++) {
                 dCombined[j] += Wf[i][j] * dGateForget[i] +
@@ -390,22 +400,22 @@ int main() {
 
     // Đọc dữ liệu từ file
     vector<Sample> trainData;
-    freopen("D:\\PBL1\\fibodata.txt", "r", stdin);
+    freopen("D:\\PBL1\\data.txt", "r", stdin);
     for (int i = 0; i < 1460; i++) {
         Sample s;
         vector<double> feat;
 
-        // Đọc 5 giá trị đặc trưng
+        // Đọc 5 feature của một ngày
         for (int j = 0; j < 5; j++) {
             double temp;
             cin >> temp;
             feat.push_back(temp);
         }
         s.input = feat;
-        cin >> s.output;// Đọc nhãn
+        cin >> s.output;// Đọc tình hình của ngày đó( vd nếu s.output là 1 =>ngày đó mưa)
         trainData.push_back(s);
     }
-
+    
     // Khởi tạo và huấn luyện mô hình
     LSTMModel model(inDim, hidDim, outDim, lr, numEpochs);
     double finalLoss = model.trainModel(trainData);
