@@ -385,25 +385,32 @@ public:
 };
 
 
+double fibo(int n) {
+    if (n <= 1)
+        return n;
+    return fibo(n - 1) + fibo(n - 2);
+}
+
 
 int main() {
     // Tham số mô hình
     int inDim = 1;
-    int hidDim = 32;
+    int hidDim = 64;
     int outDim = 1;
     double lr = 0.01;
-    int numEpochs = 1000;
+    int numEpochs = 5000;
 
     // Đọc dữ liệu từ file
     vector<Sample> trainData;
     freopen("D:\\PBL1\\fibodata.txt", "r", stdin);
-    struct Sample e;double temp;
-    for(int i=0;i<8;i++){
-        cin>>temp;
-        e.input.push_back(temp);
+    for(int i=1;i<10;i++){
+        struct Sample e;
+        vector<double> temp;
+        temp.push_back(i);
+        e.input=(temp);
+        e.output=(fibo(i));
+        trainData.push_back(e);
     }
-    cin>>e.output;
-    trainData.push_back(e);
     // Khởi tạo và huấn luyện mô hình
     LSTMModel model(inDim, hidDim, outDim, lr, numEpochs);
     double finalLoss = model.trainModel(trainData);
@@ -411,13 +418,16 @@ int main() {
 
     // Dự đoán
     cout << "Testing prediction:" << endl;
-    vector<double> testInput=e.input;
+    //testing:
+    
+    vector<double> testInput;
+    testInput.push_back(11);
     // Đọc dữ liệu test (5 đặc trưng)
-    double actual=e.output;
+    int actual=int(fibo(11));
 
     // Gọi hàm dự đoán và in kết quả
     double pred = model.predictOutput(testInput);
-    cout<<"predict:"<<pred<<endl;cout<<"thuc te:"<<actual;
+    cout<<"predict:"<<pred<<endl;cout<<"thuc te:"<<actual<<endl<<"dis:"<<abs(pred-actual);
     
     return 0;
 }
