@@ -377,6 +377,7 @@ public:
         auto [hOut, cOut] = lstmCell.forward(inputData, h, c);
 
         // Tính toán đầu ra
+        //fully-connected layer/ dense layer
         vector<double> out = matrixVectorProduct(Wy, hOut);
         for (int i = 0; i < outputDim; i++)
             out[i] += by[i];
@@ -394,10 +395,10 @@ double fibo(int n) {
 
 int main() {
     // Tham số mô hình
-    int inDim = 1;
-    int hidDim = 64;
-    int outDim = 1;
-    double lr = 0.01;
+    int inDim = 1; //input dimention
+    int hidDim = 64; //hidden dimention
+    int outDim = 1; //output Dimention
+    double lr = 0.01; //learning rate
     int numEpochs = 5000;
 
     // Đọc dữ liệu từ file
