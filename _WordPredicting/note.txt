@@ -1,0 +1,6 @@
+khó phết đấy chứ
+https://github.com/vndee/awsome-vietnamese-nlp
+vấn đề:
+    predicting next word, cho n số word , m số word cần đoán tiếp theo rồi chạy
+    training:
+        với data là các câu cách nhau bởi các dòng , input cho model thế nào để đoán đây ta.
