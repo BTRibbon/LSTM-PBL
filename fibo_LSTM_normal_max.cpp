@@ -246,7 +246,7 @@ public:
         vector<double> dCombined(inSize + hidSize, 0.0);
         // tạo một vector dCombined với (inSize + hidSize) = 0.0
         // đây là tính đạo hàm của loss theo [x_t,h_t-1]
-        for (int i = 0; i < hidSize; i++) {
+        for (int i = 0; i < hidSize; i++){
             for (int j = 0; j < inSize + hidSize; j++) {
                 dCombined[j] += Wf[i][j] * dGateForget[i] +
                                 Wi[i][j] * dGateInput[i] +
@@ -323,7 +323,6 @@ public:
             for (const auto& s : dataset) {
                 
                 // Khởi tạo hidden state và cell state ban đầu
-                
                 
                 // Lan truyền thuận qua LSTM cell
                 auto [hOut, cOut] = lstmCell.forward(s.input, h, c);
@@ -456,32 +455,26 @@ int main() {
     vector<Sample> trainData;
     vector<Sample> testInput;
     freopen("D:\\PBL1\\fibodata.txt", "r", stdin);
-    double temp;struct Sample e;double a, b,c;
-    cin>>a;cin>>b;cin>>c;
-    e.input.push_back(a);
-    e.input.push_back(b);
-    e.input.push_back(c);
-    e.output=c+b;
-    trainData.push_back(e);
-    testInput.push_back(e);
-    for(int i=3;i<10;i++){
+    struct Sample e;double a, b,c,d;
+    string sign="next";
+    cin>>a>>b>>c>>d>>sign;
+    
+    while(sign=="next"){
         struct Sample e;
-        temp=b;a=b;b=c;
-        c+=temp;
+        cin>>a>>b>>c>>d>>sign;
         e.input.push_back(a);
         e.input.push_back(b);
         e.input.push_back(c);
-        e.output=c+b;
+        e.output=d;
         trainData.push_back(e);
         testInput.push_back(e);
     }
     struct Sample t;
-    temp=b;a=b;b=c;
-    c+=temp;
+    cin>>a>>b>>c>>d;
     t.input.push_back(a);
     t.input.push_back(b);
     t.input.push_back(c);
-    t.output=c+b;
+    t.output=d;
     testInput.push_back(t);
     int n=trainData.size();double lon=trainData[n-1].output;
     for(int i=0;i<testInput.size();i++){
@@ -491,7 +484,7 @@ int main() {
     
     normalize(testInput,lon);// chuẩn hóa dự liệu theo số lớn nhất trong vector sample vì do số quá lớn
     normalize(trainData,lon);
-    //cout<<"ok"<<endl;
+    
     // Khởi tạo và huấn luyện mô hình
     LSTMModel model(inDim, hidDim, outDim, lr, numEpochs);
     double finalLoss = model.trainModel(trainData);
@@ -501,21 +494,14 @@ int main() {
     cout << "Testing prediction:" << endl;
     
     
-    // Đọc dữ liệu test (5 đặc trưng)
-    /*double k=5;
-    struct Sample p_thu;
-    cout<<fibo(k)<<" "<<fibo(k+1)<<" "<<fibo(k+2)<<endl;
-    p_thu.input.push_back(fibo(k)/lon);
-    p_thu.input.push_back(fibo(k+1)/lon);
-    p_thu.input.push_back(fibo(k+2)/lon);*/
+    
     
     // Gọi hàm dự đoán và in kết quả
-    /*for(int i=0;i<testInput.size();i++){
-        double pred = model.predictOutput_final(testInput,testInput.size(),lon)*lo
-        cout<<"predict(da chuan hoa)lan thu "<<i+1<<" :"<<pred*lon<<endl;
-        cout<<"thuc te:"<<fibo(i+5)<<endl;
-    }*/
-    
-    cout<<"predict lan cuoi:"<<model.predictOutput_final(testInput,testInput.size(),lon)*lon<<endl;
+    for(int i=1;i<=testInput.size();i++){
+        double pred = model.predictOutput_final(testInput,i,lon)*lon;
+        cout<<"predict lan thu "<<i<<" :"<<pred<<endl;
+        cout<<"thuc te:"<<fibo(i+4)<<endl;
+    }
+    //cout<<"predict lan cuoi:"<<model.predictOutput_final(testInput,testInput.size(),lon)*lon<<endl;
     return 0;
 }
