@@ -290,7 +290,8 @@ public:
         random_device rd;
         mt19937 gen(rd());
         normal_distribution<double> d(0.0, sqrt(6.0/(1.0*(inputDim+hiddenDim))));// Phân phối chuẩn
-            
+        
+
         Wy = vector<vector<double>>(outputDim, vector<double>(hiddenDim));
         // ý nghĩa của Wy : vì hiddensate là vector nhiều chiều mà kết quả( output) thường chỉ là 1 hay 2
         // ==> cái Wy là để giúp hidden cho ra đúng chừng nớ output
@@ -307,14 +308,16 @@ public:
     }
 
     //Hàm huấn luyện mô hình
-    double trainModel(const vector<Sample>& dataset) {
+    double trainModel(const vector<Sample>& dataset,double loss_toi_uu,double lon) {
         double totalLoss = 0.0;
-        
-        //vector<double> h(hiddenDim, 0.0), c(hiddenDim, 0.0);
+        bool ok =true;
         // Lặp qua số lần huấn luyện
         for (int ep = 0; ep < epochs; ep++) {
             double epLoss = 0.0;
-            
+            if(ok==false){
+                cout<<"study too much\n";
+                break;
+            }
             double current_lr = learningRate ;
             vector<double> h(hiddenDim, 0.0), c(hiddenDim, 0.0);
             // Duyệt qua từng mẫu trong tập dữ liệu
@@ -340,7 +343,7 @@ public:
                     dPred[i] = 2.0 * err;
                 }
                 loss /= outputDim;
-                epLoss += loss;
+                epLoss += loss*pow(lon,2);
                 
                 // Lan truyền ngược lớp output
                 vector<double> dHidden(hiddenDim, 0.0);
@@ -364,6 +367,8 @@ public:
             // Tính loss trung bình epoch
             epLoss /= dataset.size();
             totalLoss = epLoss;
+            
+            if(totalLoss<loss_toi_uu)ok=false;
             
             
             // In thông tin sau mỗi 10 epoch
@@ -396,14 +401,15 @@ public:
         
         
         for(int i=0;i<n;i++){
-            auto [hOut, cOut] = lstmCell.forward(e[i].input, h, c);//câu lệnh này có nghĩa là:
+            auto [hOut, cOut] = lstmCell.forward(e[i].input, h, c);
             h=hOut;   c=cOut;
             if(i==n-1){
                 vector<double> out = matrixVectorProduct(Wy, hOut);
                 for (int i = 0; i < outputDim; i++)
                     out[i] += by[i];
-                //cout<<"cac phan tu du doan:"<<e[i].input[0]*lon<<" "<<e[i].input[1]*lon<<" ";
-                //cout<<e[i].input[2]*lon<<endl;
+                /*for (int j = 0; j < e[i].input.size(); j++)
+                    cout<<e[i].input[j]<<" ";
+                cout<<"\n";*/
                 return out[0]; // Giả sử outputDim = 1 hay là kết quả chỉ cần in ra một thôi
             }
         }
@@ -411,17 +417,15 @@ public:
         // Tính toán đầu ra
         
     }
-        
-    
 };
 
 void normalize(vector<Sample>& data,double lon){
-    
+    int capacity=data[0].input.size();
     int n=data.size();
     
     for(int i=0;i<n;i++){
         
-        for(int j=0;j<3;j++){
+        for(int j=0;j<capacity;j++){
             data[i].input[j]/=lon;
            
         }
@@ -451,16 +455,17 @@ string decodeOutput(double val) {
 }
 int main() {
     // Tham số mô hình
-    int inDim,sl;int loai;
-    int hidDim = 32;
+    int inDim,sl;int loai;double loss_toi_uu;
+    int hidDim = 20;
     int outDim;
-    double lr = 0.001;
-    int numEpochs = 8000;
+    double lr = 0.01;
+    int numEpochs = 150000;
     // Đọc dữ liệu từ file
     vector<Sample> trainData;
     vector<Sample> testInput;
-    freopen("D:\\PBL1\\fibodata.txt", "r", stdin);
+    freopen("D:\\PBL1\\sin(x)_data.txt", "r", stdin);
     cin>>inDim>>outDim;cin>>sl;cin>>loai;
+    cin>>loss_toi_uu;
     double a;
     while(sl--){
         struct Sample e;
@@ -476,21 +481,19 @@ int main() {
     for(int i=0;i<inDim;i++){
             cin>>a;
             t.input.push_back(a);
-        }
+    }
     cin>>t.output;
     testInput.push_back(t);
-    int n=trainData.size();double lon=trainData[n-1].output;
-    for(int i=0;i<testInput.size();i++){
-        cout<<testInput[i].input[0]<<" "<<testInput[i].input[1]<<" "<<testInput[i].input[2]<<" ";
-        cout<<testInput[i].output<<endl;
-    }
-    
+    int n=trainData.size();
+    double lon=trainData[n-1].output;
+    if(loai==3)lon=1;
+    if(loai == 2)lon=1;
     normalize(testInput,lon);// chuẩn hóa dự liệu theo số lớn nhất trong vector sample vì do số quá lớn
     normalize(trainData,lon);
     
     // Khởi tạo và huấn luyện mô hình
     LSTMModel model(inDim, hidDim, outDim, lr, numEpochs);
-    double finalLoss = model.trainModel(trainData);
+    double finalLoss = model.trainModel(trainData,loss_toi_uu,lon);
     cout << "Training completed. Final Loss: " << finalLoss << endl;
 
     // Dự đoán
@@ -501,12 +504,20 @@ int main() {
         cout<<"predict lan thu "<<i<<" :"<<pred<<endl;
         cout<<"thuc te:"<<fibo(i+4)<<endl;
     }*/
+    
     cout<<"kết quả:"<<model.predictOutput_final(testInput,testInput.size(),lon)*lon<<endl;
+    
     if(loai==2){
         cout<<"chuyển hóa để dự đoán:"<<decodeOutput(model.predictOutput_final(testInput,testInput.size(),lon)*lon)<<endl;
-        cout<<"thực tế:"<<decodeOutput(testInput[sl+1].output)<<endl;
+        cout<<"thực tế:"<<decodeOutput(testInput[testInput.size()-1].output*lon)<<endl;
     }else cout<<"thực tế:"<<testInput[testInput.size()-1].output*lon<<endl;
     return 0;
 }
-// D:\\PBL1\\_WeatherPredicting\\data.txt : dự báo thời tiết
-//  D:\\PBL1\\fibodata.txt: dự đoán chuổi fibonacci
+/*
+  D:\\PBL1\\_WeatherPredicting\\data.txt : dự báo thời tiết => hidSize=8 lr=0.001 => epoch =2000
+  D:\\PBL1\\fibodata.txt: dự đoán chuổi fibonacci=> hidSize=32 lr=0.001 => epoch =8000
+  D:\\PBL1\\sin(x)_data.txt: dự đoán hàm sin(x) => hidSize = 20 lr=0.01 =>epoch= 150000
+  D:\\PBL1\\ham_so.txt :hàm số x^3+5x^2 -x +1 
+
+*/
+ 
