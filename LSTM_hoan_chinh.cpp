@@ -456,14 +456,14 @@ string decodeOutput(double val) {
 int main() {
     // Tham số mô hình
     int inDim,sl;int loai;double loss_toi_uu;
-    int hidDim = 24;
+    int hidDim = 20;
     int outDim;
     double lr = 0.01;
     int numEpochs = 200000;
     // Đọc dữ liệu từ file
     vector<Sample> trainData;
     vector<Sample> testInput;
-    freopen("D:\\PBL1\\fibodata.txt", "r", stdin);
+    freopen("D:\\PBL1\\sin_data.txt", "r", stdin);
     cin>>inDim>>outDim;cin>>sl;cin>>loai;
     cin>>loss_toi_uu;
     double a;struct Sample e;
@@ -509,11 +509,11 @@ int main() {
     // Dự đoán
     cout << "Testing prediction:" << endl;
     // Gọi hàm dự đoán và in kết quả
-    for(int i=1;i<=testInput.size();i++){
+    /*for(int i=1;i<=testInput.size();i++){
         double pred = model.predictOutput_final(testInput,i,lon)*lon;
         cout<<"predict lan thu "<<i<<" :"<<pred<<endl;
         cout<<"thuc te:"<<fibo(i+3)<<endl;
-    }
+    }*/
     
     cout<<"kết quả:"<<model.predictOutput_final(testInput,testInput.size(),lon)*lon<<endl;
     
@@ -526,8 +526,7 @@ int main() {
 /*
   D:\\PBL1\\_WeatherPredicting\\data.txt : dự báo thời tiết => hidSize=24 lr=0.01 => epoch =150000
   D:\\PBL1\\fibodata.txt: dự đoán chuổi fibonacci=> hidSize=32 lr=0.01 => epoch =200000
-  D:\\PBL1\\sin(x)_data.txt: dự đoán hàm sin(x) => hidSize = 20 lr=0.01 =>epoch= 150000
-  D:\\PBL1\\ham_so.txt :hàm số x^3+5x^2 -x +1 
+  D:\\PBL1\\sin_data.txt: dự đoán hàm sin(x) => hidSize = 24 lr=0.01 =>epoch= 150000
 
 */
  
