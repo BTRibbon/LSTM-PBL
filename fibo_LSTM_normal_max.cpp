@@ -37,14 +37,12 @@ vector<double> activateTanh(const vector<double>& vec) {
 double dActivateSigmoid(double y) {
     return y * (1.0 - y);                   // đạo hàm của sigmoid
 }
-
 vector<double> dActivateSigmoid(const vector<double>& vec) {
     vector<double> res(vec.size());
     for (size_t i = 0; i < vec.size(); i++)
         res[i] = vec[i] * (1.0 - vec[i]);           // đạo hàm sigmoid của từng phần tử trong vector
     return res;
 }
-
 double dActivateTanh(double y) {
     return 1.0 - y * y;                 // đạo hàm của hàm tanh
 }
@@ -445,36 +443,33 @@ void logNormalize(vector<Sample>& data) {   // hàm chuẩn hóa dữ kiệu the
 }
 int main() {
     // Tham số mô hình
-    int inDim = 3;
+    int inDim,sl;
     int hidDim = 32;
-    int outDim = 1;
+    int outDim;
     double lr = 0.001;
     int numEpochs = 8000;
-
     // Đọc dữ liệu từ file
     vector<Sample> trainData;
     vector<Sample> testInput;
     freopen("D:\\PBL1\\fibodata.txt", "r", stdin);
-    struct Sample e;double a, b,c,d;
-    string sign="next";
-    cin>>a>>b>>c>>d>>sign;
-    
-    while(sign=="next"){
+    cin>>inDim>>outDim;cin>>sl;
+    double a;
+    while(sl--){
         struct Sample e;
-        cin>>a>>b>>c>>d>>sign;
-        e.input.push_back(a);
-        e.input.push_back(b);
-        e.input.push_back(c);
-        e.output=d;
+        for(int i=0;i<inDim;i++){
+            cin>>a;
+            e.input.push_back(a);
+        }
+        cin>>e.output;
         trainData.push_back(e);
         testInput.push_back(e);
     }
     struct Sample t;
-    cin>>a>>b>>c>>d;
-    t.input.push_back(a);
-    t.input.push_back(b);
-    t.input.push_back(c);
-    t.output=d;
+    for(int i=0;i<inDim;i++){
+            cin>>a;
+            t.input.push_back(a);
+        }
+    cin>>t.output;
     testInput.push_back(t);
     int n=trainData.size();double lon=trainData[n-1].output;
     for(int i=0;i<testInput.size();i++){
@@ -500,7 +495,7 @@ int main() {
     for(int i=1;i<=testInput.size();i++){
         double pred = model.predictOutput_final(testInput,i,lon)*lon;
         cout<<"predict lan thu "<<i<<" :"<<pred<<endl;
-        cout<<"thuc te:"<<fibo(i+4)<<endl;
+        cout<<"thuc te:"<<fibo(i+3)<<endl;
     }
     //cout<<"predict lan cuoi:"<<model.predictOutput_final(testInput,testInput.size(),lon)*lon<<endl;
     return 0;

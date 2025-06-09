@@ -185,7 +185,8 @@ public:
 
     //this is insane tbh
     // backward: back propagation
-    tuple<vector<double>, vector<double>, vector<double>> backward(const vector<double>& dHiddenNext, 
+    //tuple<vector<double>, vector<double>, vector<double>>
+    void backward(const vector<double>& dHiddenNext, 
                                                                      const vector<double>& dCellNext, 
                                                                      double lr, 
                                                                      double clipVal = 1.0) {
@@ -252,13 +253,13 @@ public:
                                 Wo[i][j] * dGateOutput[i];
             }
         }
-        vector<double> dPrevInput(dCombined.begin(), dCombined.begin() + inSize);// lấy kết quả đạo hàm của x_t
-        vector<double> dPrevHidden(dCombined.begin() + inSize, dCombined.end());// lấy kết quả đạo hàm của h_t-1
-        vector<double> dPrevCell = multiplyVectors(dCellTotal, gateForget);
+        //vector<double> dPrevInput(dCombined.begin(), dCombined.begin() + inSize);// lấy kết quả đạo hàm của x_t
+        //vector<double> dPrevHidden(dCombined.begin() + inSize, dCombined.end());// lấy kết quả đạo hàm của h_t-1
+        //vector<double> dPrevCell = multiplyVectors(dCellTotal, gateForget);
         
         // trả về gradient của input, hidden state và cell state.
         // Gradient trọng số có thể được tính riêng nếu cần.
-        return {dPrevInput, dPrevHidden, dPrevCell};
+        return;
     }
 };
 
@@ -455,33 +456,18 @@ string decodeOutput(double val) {
 }
 int main() {
     // Tham số mô hình
-    int inDim,sl;int loai;double loss_toi_uu;
-    int hidDim = 20;
+    int inDim,sl;double loss_toi_uu;
+    int hidDim = 32;
     int outDim;
     double lr = 0.01;
     int numEpochs = 200000;
     // Đọc dữ liệu từ file
     vector<Sample> trainData;
     vector<Sample> testInput;
-    printf("bạn muốn chọn trường hợp nào,vui lòng nhập số tương ứng: sin(1),Fibonnaci(2),Thời Tiết (3)");
-    int choice=1;
-    scanf("%d",&choice);
-    if(choice==1){freopen("sin_data.txt", "r", stdin);}
-    else if(choice==2){freopen("fibodata.txt", "r", stdin);}
-    else if(choice==3){freopen("_WeatherPredicting\\data.txt", "r", stdin);}
+    freopen("D:\\PBL1\\sin_data.txt", "r", stdin);
     cin>>inDim>>outDim;cin>>sl;cin>>loai;
     cin>>loss_toi_uu;
     double a;struct Sample e;
-    if(loai == 1){
-        for(int i=0;i<sl-3;i++){
-            for(int i=0;i<inDim;i++){
-                cin>>a;
-                e.input.push_back(a);
-            }
-            cin>>e.output;
-        }
-        sl=3;
-    }
     while(sl--){
         struct Sample e;
         for(int i=0;i<inDim;i++){
@@ -502,7 +488,7 @@ int main() {
     int n=trainData.size();
     double lon=trainData[n-1].output;
     if(loai==3)lon=1;
-    if(loai == 2)lon=1;
+    if(loai == 1)lon=1;
     normalize(testInput,lon);// chuẩn hóa dự liệu theo số lớn nhất trong vector sample vì do số quá lớn
     normalize(trainData,lon);
     
@@ -522,16 +508,16 @@ int main() {
     
     cout<<"kết quả:"<<model.predictOutput_final(testInput,testInput.size(),lon)*lon<<endl;
     
-    if(loai==2){
+    if(loai==3){
         cout<<"chuyển hóa để dự đoán:"<<decodeOutput(model.predictOutput_final(testInput,testInput.size(),lon)*lon)<<endl;
         cout<<"thực tế:"<<decodeOutput(testInput[testInput.size()-1].output*lon)<<endl;
     }else cout<<"thực tế:"<<testInput[testInput.size()-1].output*lon<<endl;
     return 0;
 }
 /*
-  _WeatherPredicting\\data.txt : dự báo thời tiết => hidSize=24 lr=0.01 => epoch =150000
-  fibodata.txt: dự đoán chuổi fibonacci=> hidSize=32 lr=0.01 => epoch =200000
-  sin_data.txt: dự đoán hàm sin(x) => hidSize = 24 lr=0.01 =>epoch= 150000
+  D:\\PBL1\\_WeatherPredicting\\data.txt : dự báo thời tiết => hidSize=24 lr=0.01 => epoch =150000
+  D:\\PBL1\\fibodata.txt: dự đoán chuổi fibonacci=> hidSize=32 lr=0.01 => epoch =200000
+  D:\\PBL1\\sin_data.txt: dự đoán hàm sin(x) => hidSize = 24 lr=0.01 =>epoch= 150000
 
 */
  
