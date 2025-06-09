@@ -463,7 +463,12 @@ int main() {
     // Đọc dữ liệu từ file
     vector<Sample> trainData;
     vector<Sample> testInput;
-    freopen("D:\\PBL1\\sin_data.txt", "r", stdin);
+    printf("bạn muốn chọn trường hợp nào,vui lòng nhập số tương ứng: sin(1),Fibonnaci(2),Thời Tiết (3)");
+    int choice=1;
+    scanf("%d",&choice);
+    if(choice==1){freopen("sin_data.txt", "r", stdin);}
+    else if(choice==2){freopen("fibodata.txt", "r", stdin);}
+    else if(choice==3){freopen("_WeatherPredicting\\data.txt", "r", stdin);}
     cin>>inDim>>outDim;cin>>sl;cin>>loai;
     cin>>loss_toi_uu;
     double a;struct Sample e;
@@ -524,9 +529,9 @@ int main() {
     return 0;
 }
 /*
-  D:\\PBL1\\_WeatherPredicting\\data.txt : dự báo thời tiết => hidSize=24 lr=0.01 => epoch =150000
-  D:\\PBL1\\fibodata.txt: dự đoán chuổi fibonacci=> hidSize=32 lr=0.01 => epoch =200000
-  D:\\PBL1\\sin_data.txt: dự đoán hàm sin(x) => hidSize = 24 lr=0.01 =>epoch= 150000
+  _WeatherPredicting\\data.txt : dự báo thời tiết => hidSize=24 lr=0.01 => epoch =150000
+  fibodata.txt: dự đoán chuổi fibonacci=> hidSize=32 lr=0.01 => epoch =200000
+  sin_data.txt: dự đoán hàm sin(x) => hidSize = 24 lr=0.01 =>epoch= 150000
 
 */
  
